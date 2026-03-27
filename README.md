@@ -138,6 +138,7 @@ This layer orients attention and sets priorities.
 - `temp/`: The workspace for **Audits, Explorations, Tech Debt Analysis, and Concepting**.
   - **Naming Convention**: Files must be associated with the Active Epic (e.g., `temp/EPIC-05_audit_log.md` or `temp/EPIC-05_tech_debt.md`).
   - **Rule**: We **Archive** these files when the associated Epic is marked complete. This preserves the context and logic that led to the final implementation.
+  - **v0 Integration**: v0.dev component output is staged here as `temp/EPIC-XX_ComponentName.tsx` before Claude Code integrates it into the product repo.
 <!-- /SECTION: doc-ecosystem -->
 
 ---
@@ -169,7 +170,7 @@ We do not proceed to the next stage until the **Definition of Done (DoD)** is me
 | **v0.6** | **Architecture**         | Technical Strategy    | Stack selected, API contracts (`API-`) drafted, Cost guardrails.   |
 | **v0.7** | **Build Execution**      | Implementation Loop   | Code tested (`TEST-`), SoT updated, Epic loop execution.           |
 | **v0.8** | **Release & Deployment** | Operational Readiness | Runbooks (`RUN-`), Monitoring (`MON-`), Rollback plan.             |
-| **v0.9** | **Launch**               | Go-to-Market          | Launch metrics (`KPI-`), Feedback channels (`CFD-`) active.        |
+| **v0.9** | **Launch**               | Go-to-Market          | Launch metrics (`KPI-`), Fetch channels (`CFD-`) active.        |
 | **v1.0** | **Growth**               | Market Adoption       | Paying customers, Retention analysis, Optimization loop.           |
 
 ### The Iterative Ecosystem
@@ -192,33 +193,175 @@ This allows the product to evolve without losing the structure that keeps humans
 <!-- SECTION: repo-structure -->
 ## Repository Structure
 
+This template contains **two logical layers**: the **Methodology Layer** (this repo) and the **Product Layer** (a separate repo created at v0.6). They are distinct by design.
+
 ```text
-/
-├── README.md               # Dashboard, structure, and status
-├── PRD.md                  # Product definition (Progressive PRD)
-├── CLAUDE.md               # The agent's operating instructions
-├── epics/                  # Active Context Windows (Tasks)
-├── SoT/                     # Shared Memory Store (SoT.* files)
-├── temp/                    # Scratch Pad for explorations and audits
-└── .claude/                 # Methodology runtime (skills, hooks, agents)
-    ├── skills/              # Stage skills (`prd-v*`) + methodology skills (`ghm-*`)
-    ├── hooks/               # Session/user/stop hooks + subagent memory hooks
-    ├── agents/              # Role agents with persistent `MEMORY.md`
-    ├── domain-profile.yaml  # ID registry + skill taxonomy
-    └── settings.json        # Hook wiring and execution config
+~/dev/
+├── PRD-driven-context-engineering/   ← THIS REPO (methodology + planning brain)
+│   ├── README.md                        # Dashboard, structure, and status
+│   ├── PRD.md                           # Product definition (Progressive PRD)
+│   ├── CLAUDE.md                        # Agent operating instructions + tech conventions
+│   ├── SoT/                             # Long-term memory (BR-, UJ-, API-, DES-, etc.)
+│   ├── epics/                           # Active context windows (execution tasks)
+│   ├── temp/                            # Scratchpad; v0.dev output stages here
+│   ├── scripts/                         # Utility scripts
+│   ├── docs/                            # Extended methodology documentation
+│   └── .claude/                         # Methodology runtime
+│       ├── agents/                      # Role agents: HORIZON, STUDIO, WERK, METRO
+│       ├── hooks/                       # Event-driven session/context hooks
+│       ├── skills/                      # prd-v* lifecycle skills + ghm-* core skills
+│       ├── domain-profile.yaml          # ID registry, skill taxonomy, tech stack config
+│       └── settings.json                # Hook wiring and execution config
+│
+└── my-product-name/                   ← PRODUCT REPO (created at v0.6 Architecture gate)
+    ├── src/
+    │   ├── app/                         # Next.js App Router — each route = SCR- entry
+    │   │   ├── layout.tsx               # Root layout (DES-001 design tokens)
+    │   │   ├── page.tsx                 # Home / landing (SCR-001)
+    │   │   ├── (auth)/                  # Route group: login, signup
+    │   │   ├── (app)/                   # Route group: authenticated app shell
+    │   │   └── api/                     # Next.js API routes = API- entries
+    │   ├── components/
+    │   │   ├── ui/                      # shadcn/ui base components (DES-00X)
+    │   │   ├── layout/                  # Structural components: Navbar, Sidebar (DES-01X)
+    │   │   └── features/                # Feature components per UJ-/SCR- (DES-02X+)
+    │   ├── lib/
+    │   │   ├── api/                     # API client functions, maps to API- entries
+    │   │   ├── auth/                    # Auth helpers
+    │   │   └── utils/                   # General utilities
+    │   ├── hooks/                       # React hooks (custom, per feature)
+    │   └── types/                       # TypeScript types from DBT- entries
+    ├── __tests__/
+    │   ├── unit/                        # TEST- unit tests
+    │   ├── integration/                 # TEST- integration tests
+    │   └── e2e/                         # TEST- end-to-end tests
+    ├── public/images/                   # Static assets
+    ├── .claude/                         # Copied from methodology repo at v0.6
+    ├── SoT/                             # Copied from methodology repo at v0.6
+    ├── epics/                           # Product-scoped epics
+    ├── temp/                            # v0.dev output staging
+    └── CLAUDE.md                        # Updated with product-specific stack (Section 4)
 ```
 
-> **Agent Note**: `.claude/` can be replaced with `.gemini/`, `.codex/`, or any other agent structure, but the skills, hooks, custom commands, and agent model here were built with Anthropic's documentation model in mind.
+> **Note**: The `src/`, `__tests__/`, and `public/` folders in this methodology repo are structural **scaffolding templates** only. They contain `.gitkeep` placeholder files so the folder layout is preserved in Git and immediately visible when the template is used. Real code lives in the product repo, not here.
+<!-- /SECTION: repo-structure -->
 
-### `.claude` Methodology Layer (Current Behavior)
+---
+
+<!-- SECTION: using-this-template -->
+## Using This Template
+
+This repo is a **methodology template**, not a deployable application. The workflow below shows how to go from fork to shipping product.
+
+### The Two-Repo Model
+
+The most important structural rule: **the methodology repo and the product repo are always separate.**
+
+| Repo | Purpose | Created When |
+|------|---------|-------------|
+| `PRD-driven-context-engineering/` | Planning brain, SoT, PRD lifecycle, agent configuration | Now (you're here) |
+| `my-product-name/` | Actual Next.js app, real code | At v0.6 Architecture gate |
+
+You run Claude Code sessions in the **product repo**, not the methodology repo. The methodology repo is where you plan; the product repo is where you build.
+
+### Step 1 — Start Here (v0.1–v0.5: Planning)
+
+Work in this methodology repo through the PRD Lifecycle gates:
+
+1. **Fork** this repo for your product.
+2. **Rename** using the `.claude/rename_templates.py` script to replace placeholder names.
+3. **Work the PRD gates** (v0.1–v0.5) using HORIZON and STUDIO agents:
+   - Define the problem, ICP, and outcomes (`PRD.md` v0.1–0.2)
+   - Map commercial model and competitors (`PRD.md` v0.3)
+   - Build User Journeys (`UJ-`), Personas (`PER-`), and Screens (`SCR-`) in `SoT/` (v0.4)
+   - Run Red Team risk review (`PRD.md` v0.5)
+4. **Prototype** in Figma Make using SCR- and DES- specs from `SoT/`.
+5. **Do not write code** until the v0.6 gate is passed.
+
+### Step 2 — Create the Product Repo (v0.6: Architecture)
+
+When the v0.6 Architecture DoD is met:
+
+1. Create a new empty GitHub repo: `my-product-name`.
+2. Copy `.claude/`, `SoT/`, `epics/`, and `CLAUDE.md` from this methodology repo into it.
+3. Update `CLAUDE.md` Section 4 with your specific database and auth choices.
+4. Run the scaffold prompt in Claude Code (Desktop) pointed at the new repo:
+
+```
+We are at v0.6 Architecture gate. The PRD is validated.
+Tech stack confirmed: Next.js 15 App Router, TypeScript, Tailwind, shadcn/ui.
+Deployment: Vercel. Database: [your choice].
+
+Please:
+1. Initialize: npx create-next-app@latest . --typescript --tailwind --app --src-dir
+2. Install shadcn/ui: npx shadcn@latest init
+3. Create folder structure per CLAUDE.md Section 4 conventions
+4. Create placeholder files with @implements stubs for: [list SCR- and DES- entries]
+5. Commit as: "v0.6: project scaffold complete, structure matches SoT IDs"
+```
+
+After this runs, every folder in the product repo is pre-mapped to a SoT ID.
+
+### Step 3 — Build with the Epic Loop (v0.7: Build Execution)
+
+All code work happens in the **product repo** using the WERK agent and Epic loop:
+
+1. Open an Epic in `epics/EPIC-XX_feature-name.md`.
+2. WERK reads the Epic, resolves the SoT IDs, and generates code in the correct `src/` paths.
+3. v0.dev component output is staged in `temp/EPIC-XX_ComponentName.tsx` first, then Claude Code integrates it with `@implements` tags.
+4. SoT entries are updated (`Implemented: ✅`) before the Epic closes.
+5. Vercel auto-deploys the `dev` branch preview after each commit.
+
+### The ID → File Map (How Claude Code Knows Where to Write)
+
+Every SoT ID maps to an exact file path. This is declared in both `CLAUDE.md` Section 4 and `.claude/domain-profile.yaml` so agents never guess.
+
+| ID | SoT File | Code Location |
+|----|----------|---------------|
+| `SCR-XXX` | `SoT/SoT.USER_JOURNEYS.md` | `src/app/[route]/page.tsx` |
+| `DES-XXX` | `SoT/SoT.DESIGN_COMPONENTS.md` | `src/components/[category]/ComponentName.tsx` |
+| `API-XXX` | `SoT/SoT.API_CONTRACTS.md` | `src/app/api/[resource]/route.ts` |
+| `DBT-XXX` | `SoT/SoT.DATA_MODEL.md` | `src/types/models.ts` + migration files |
+| `TEST-XXX` | `SoT/SoT.TESTING.md` | `__tests__/[unit\|integration\|e2e]/` |
+| `UJ-XXX` | `SoT/SoT.USER_JOURNEYS.md` | `@implements` tag across `src/` |
+| `BR-XXX` | `SoT/SoT.BUSINESS_RULES.md` | `@implements` tag + validation logic |
+
+### v0.dev Component Integration
+
+v0 is a **component fabricator**, not a code committer. All v0 output passes through Claude Code before it touches the codebase:
+
+```
+STUDIO creates DES-XXX spec in SoT/SoT.DESIGN_COMPONENTS.md
+       ↓
+YOU generate component at v0.dev using the DES-XXX spec
+       ↓
+Save output to  temp/EPIC-XX_ComponentName.tsx
+       ↓
+CLAUDE CODE integrates: moves file, adds @implements tags, wires to parent page
+       ↓
+SoT.DESIGN_COMPONENTS.md entry updated: "Implemented: ✅"
+       ↓
+Vercel deploys dev branch preview
+```
+
+> **Rule**: v0 output is never committed directly to `src/`. Always integrate through Claude Code to preserve `@implements` tag integrity and the ID graph.
+<!-- /SECTION: using-this-template -->
+
+---
+
+<!-- SECTION: repo-structure-claude -->
+## `.claude` Methodology Layer
 
 - **Skills are split by intent**: `prd-v*` skills map to lifecycle stages; `ghm-*` skills handle operational work like gate checks, ID hygiene, SoT building, and status synchronization.
 - **Hooks are event-driven**: `SessionStart` injects read order, `UserPromptSubmit` checks context density for epic/gate prompts, and `Stop` reminds on SoT cascade updates.
 - **Subagent memory is automated**: `SubagentStart` loads agent memory, while `SubagentStop` prompts memory updates and runs a post-delegation drift check.
 - **Hook behavior is standardized**: `.claude/hooks/HOOK_CONTRACT.md` keeps the interface consistent even when scripts are swapped or extended.
+- **Stack awareness is declared**: `.claude/domain-profile.yaml` contains the `tech_stack` block that maps SoT IDs to Next.js file paths, so agents resolve locations without being told in every prompt.
+
+> **Agent Note**: `.claude/` can be replaced with `.gemini/`, `.codex/`, or any other agent structure, but the skills, hooks, custom commands, and agent model here were built with Anthropic’s documentation model in mind.
 
 > **Fork Note**: This `README.md` explains the methodology. When you fork this repo for a product, copy `README_template.md` to `README.md` and customize it for that product.
-<!-- /SECTION: repo-structure -->
+<!-- /SECTION: repo-structure-claude -->
 
 ---
 
@@ -231,7 +374,7 @@ Thank you for helping us refine the **PRD Led Context Engineering** methodology.
 
 Before contributing, please read:
 
-1.  **[`README.md`](README.md)**: The "Executive Functions" layer and Project Dashboard.
+1.  **[`README.md`](README.md)**: The “Executive Functions” layer and Project Dashboard.
 2.  **[`CLAUDE.md`](CLAUDE.md)**: The Agent Operating Instructions.
 
 Our goal is to optimize **Context Density**: providing the AI (and humans) with exactly the right information at the right time.
@@ -241,23 +384,23 @@ Our goal is to optimize **Context Density**: providing the AI (and humans) with 
 #### 1. Refine the Methodology
 
 - **Templates**: Improve `SoT/` templates or `epics/EPIC_TEMPLATE.md`.
-- **Workflows**: Suggest automation hooks or better ways to manage the "Source of Truth".
-- **Documentation**: Clarify the "Rules of the Road" in `README.md`.
+- **Workflows**: Suggest automation hooks or better ways to manage the “Source of Truth”.
+- **Documentation**: Clarify the “Rules of the Road” in `README.md`.
 
 #### 2. Report Friction
 
-- If you find a "Gate" in the PRD Lifecycle (`README.md#the-prd-lifecycle`) that slows you down without adding value, let us know.
-- If the AI struggles to find context, report it as a "Context Leak."
+- If you find a “Gate” in the PRD Lifecycle that slows you down without adding value, let us know.
+- If the AI struggles to find context, report it as a “Context Leak.”
 
 ### Getting Started
 
 1.  **Fork & Branch**: Create a branch for your feature or fix.
 2.  **Follow the Lifecycle**: Even for meta-changes, we respect the spirit of the **Gated Workflow**.
-3.  **Traceability**: If you add a new concept, give it an ID (e.g., `BR-XXX` or `UJ-XXX`) if it's durable.
+3.  **Traceability**: If you add a new concept, give it an ID (e.g., `BR-XXX` or `UJ-XXX`) if it’s durable.
 
 ### Contribution Standards
 
-- **Terminology**: Use "PRD Led Context Engineering", "Source of Truth", and "Epics" consistent with `README.md`.
+- **Terminology**: Use “PRD Led Context Engineering”, “Source of Truth”, and “Epics” consistent with `README.md`.
 - **Links**: Always use relative links to files (e.g., `[Link](README.md)`), not absolute paths.
 - **Tone**: Professional, prescriptive, and rigorous.
 
