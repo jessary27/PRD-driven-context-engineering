@@ -16,6 +16,57 @@
 
 profile: product
 
+# --- Tech Stack ---
+# Declares the framework and file path conventions for the product repo.
+# This block is read by prd-v06-architecture-design and prd-v07-implementation-loop
+# skills to resolve ID → file path without requiring re-declaration in every prompt.
+#
+# HOW TO CUSTOMIZE:
+#   When copying this methodology into a product repo at v0.6:
+#   1. Set framework to your chosen stack (e.g., "next.js-15-app-router")
+#   2. Set database to your choice (e.g., "supabase", "prisma-postgres", "planetscale")
+#   3. Set auth to your choice (e.g., "clerk", "nextauth", "supabase-auth")
+#   4. Adjust paths only if you deviate from the standard Next.js src/ layout
+#   5. Set v0_integration to false if you are not using v0.dev for component generation
+tech_stack:
+  framework: "next.js-15-app-router"
+  ui_library: "shadcn-ui"
+  styling: "tailwind-css"
+  language: "typescript"
+  database: "[your-choice]"          # e.g., supabase | prisma-postgres | planetscale
+  auth: "[your-choice]"              # e.g., clerk | nextauth | supabase-auth
+  deployment: "vercel"
+  branches:
+    production: "main"
+    preview: "dev"
+
+  # ID → code path resolution map
+  # Used by WERK agent and prd-v07-implementation-loop skill
+  id_to_path:
+    SCR: "src/app/"                  # Each SCR-XXX = src/app/[route]/page.tsx
+    DES: "src/components/"           # Each DES-XXX = src/components/[category]/ComponentName.tsx
+    API: "src/app/api/"              # Each API-XXX = src/app/api/[resource]/route.ts
+    DBT: "src/types/"                # DBT-XXX = src/types/models.ts + migration files
+    TEST: "__tests__/"               # TEST-XXX = __tests__/[unit|integration|e2e]/
+
+  # v0.dev integration
+  # Staging path for v0 component output before Claude Code integration
+  v0_integration: true
+  v0_output_staging: "temp/"         # v0 output lands here, never committed directly
+
+  # Standard folder layout (reference for scaffold prompt at v0.6 gate)
+  folder_layout:
+    component_path: "src/components/"
+    page_path: "src/app/"
+    api_path: "src/app/api/"
+    lib_path: "src/lib/"
+    hooks_path: "src/hooks/"
+    types_path: "src/types/"
+    test_path: "__tests__/"
+    public_path: "public/"
+    epics_path: "epics/"
+    temp_path: "temp/"
+
 # --- ID Prefix Registry ---
 # Each prefix maps to a SoT file and description.
 # Hooks and skills read from this section to resolve ID → file lookups.
