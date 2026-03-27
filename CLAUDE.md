@@ -1,8 +1,8 @@
 ---
 title: "CLAUDE Agent Operating Guide"
-updated: "2026-02-12"
+updated: "2026-03-27"
 authority: "PRD Led Context Engineering"
-template_version: "3.0.0"
+template_version: "3.1.0"
 ---
 
 # CLAUDE.md — Agent Operating Guide
@@ -112,3 +112,97 @@ export class RateLimiter { ... }
 
 **When in doubt, follow the Source of Truth.**
 <!-- /SECTION: quick-reference -->
+
+---
+
+<!-- SECTION: tech-stack-conventions -->
+## 4. Tech Stack & File Conventions
+
+> **Scope**: This section applies to the **product repo** (created at v0.6 Architecture gate).
+> When you copy this CLAUDE.md into a product repo, update the Stack and ID → File Conventions
+> blocks to match your specific project choices. The methodology repo itself does not contain
+> framework code — only the product repo does.
+
+### Stack
+
+- **Framework**: Next.js 15 (App Router)
+- **UI**: React 19, Tailwind CSS, shadcn/ui
+- **Language**: TypeScript (strict mode)
+- **Backend**: Next.js API Routes (no separate BE server)
+- **Database**: [your choice — e.g., Supabase / Prisma / PlanetScale]
+- **Auth**: [your choice — e.g., Clerk / NextAuth / Supabase Auth]
+- **Deployment**: Vercel (preview on `dev`, production on `main`)
+
+### ID → File Conventions
+
+Every SoT ID maps directly to a file location in the product repo. When Claude Code sees an ID in a prompt, it resolves the ID to this path — no guessing required.
+
+| SoT ID | SoT File | Maps to Code Location |
+|--------|----------|----------------------|
+| `SCR-XXX` | `SoT/SoT.USER_JOURNEYS.md` | `src/app/[route-name]/page.tsx` |
+| `DES-XXX` | `SoT/SoT.DESIGN_COMPONENTS.md` | `src/components/[category]/ComponentName.tsx` |
+| `API-XXX` | `SoT/SoT.API_CONTRACTS.md` | `src/app/api/[resource]/route.ts` |
+| `DBT-XXX` | `SoT/SoT.DATA_MODEL.md` | `src/types/models.ts` + migration files |
+| `TEST-XXX` | `SoT/SoT.TESTING.md` | `__tests__/[unit\|integration\|e2e]/` |
+| `UJ-XXX` | `SoT/SoT.USER_JOURNEYS.md` | Referenced via `@implements` tags across `src/` |
+| `BR-XXX` | `SoT/SoT.BUSINESS_RULES.md` | Referenced via `@implements` tags and validation logic |
+
+### v0 Component Integration Rule
+
+v0 is a **component fabricator** that executes DES- specs into React code. Its output is never committed directly to the codebase — it always passes through Claude Code for traceability wiring.
+
+```
+STUDIO creates DES-XXX spec in SoT/SoT.DESIGN_COMPONENTS.md
+           ↓
+YOU take DES-XXX spec text to v0.dev
+           ↓
+v0 generates React / Tailwind component
+           ↓
+YOU save output to temp/EPIC-XX_ComponentName.tsx
+           ↓
+CLAUDE CODE (Desktop) integrates:
+  - Moves file to src/components/[category]/ComponentName.tsx
+  - Adds @implements DES-XXX, UJ-XXX tags
+  - Wires to parent page.tsx
+  - Updates SoT.DESIGN_COMPONENTS.md entry: "Implemented: ✅"
+           ↓
+VERCEL auto-deploys dev branch preview
+```
+
+### Traceability Format (Next.js specific)
+
+All components, routes, and API handlers must include traceability comments at the top of the file:
+
+```typescript
+// @implements DES-021 (Feature Card)
+// @implements UJ-003 (User views feature list)
+// @see API-007 (Feature list endpoint)
+export function FeatureCard({ ... }) { ... }
+```
+
+### Product Repo Scaffold (One-time, at v0.6 Gate)
+
+When the v0.6 Architecture gate is reached, run the following prompt in Claude Code (Desktop), pointed at the new empty product repo:
+
+```
+We are at v0.6 Architecture gate. The PRD is validated.
+
+Tech stack confirmed: Next.js 15 App Router, TypeScript, Tailwind, shadcn/ui.
+Deployment: Vercel. Database: [your choice].
+
+Please:
+1. Initialize the Next.js project with:
+   npx create-next-app@latest . --typescript --tailwind --app --src-dir
+2. Install shadcn/ui:
+   npx shadcn@latest init
+3. Create the full folder structure per CLAUDE.md conventions:
+   src/app/, src/components/ui/, src/components/layout/,
+   src/components/features/, src/lib/, src/hooks/, src/types/,
+   __tests__/unit/, __tests__/integration/, __tests__/e2e/, temp/
+4. Create placeholder files with @implements stubs for:
+   [list your SCR- and DES- entries from SoT]
+5. Commit as: "v0.6: project scaffold complete, structure matches SoT IDs"
+```
+
+After this runs, the entire codebase is pre-mapped to the SoT. Every subsequent Epic fills in pre-existing stubs.
+<!-- /SECTION: tech-stack-conventions -->
