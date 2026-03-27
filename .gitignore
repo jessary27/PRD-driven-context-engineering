@@ -1,65 +1,155 @@
-# OS files
+# ============================================================
+# PRD Led Context Engineering — .gitignore
+# v0-template: Next.js 15 App Router + methodology repo rules
+# ============================================================
+
+# ------------------------------------------------------------
+# GLOBAL RULE: Never ignore .gitkeep files.
+# .gitkeep files preserve empty folder structure in Git.
+# This rule must appear first to take precedence.
+# ------------------------------------------------------------
+!**/.gitkeep
+
+# ------------------------------------------------------------
+# OS Files
+# ------------------------------------------------------------
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Editor files
+# ------------------------------------------------------------
+# Editor & IDE Files
+# ------------------------------------------------------------
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# Claude Code local settings (machine-specific)
+# ------------------------------------------------------------
+# Claude Code — machine-specific local settings only
+# All other .claude/ files ARE committed (skills, hooks, agents)
+# ------------------------------------------------------------
 .claude/settings.local.json
 
-# Environment files
+# ------------------------------------------------------------
+# Environment & Secrets
+# NEVER commit credentials, tokens, or local env overrides
+# ------------------------------------------------------------
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.*.local
 
+# Safe to commit (non-secret defaults)
+# .env.example — do NOT ignore this; commit it as a template
+
+# ------------------------------------------------------------
+# Next.js Runtime (product repo — generated at build/dev time)
+# ------------------------------------------------------------
+.next/
+out/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts
+
+# ------------------------------------------------------------
+# Node.js Dependencies
+# ------------------------------------------------------------
+node_modules/
+.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# ------------------------------------------------------------
+# Package Manager Locks
+# Commit ONE lock file for your chosen package manager.
+# Ignore the others to avoid conflicts.
+# Uncomment the one you DO NOT use:
+# ------------------------------------------------------------
+# package-lock.json   # uncomment if using yarn or pnpm
+# yarn.lock           # uncomment if using npm or pnpm
+# pnpm-lock.yaml      # uncomment if using npm or yarn
+
+# ------------------------------------------------------------
+# Testing & Coverage
+# __tests__/ folder structure IS committed (via .gitkeep)
+# Only generated coverage output is ignored
+# ------------------------------------------------------------
+coverage/
+.nyc_output/
+jest-results/
+playwright-report/
+test-results/
+
+# ------------------------------------------------------------
+# temp/ — Scratchpad directory
+# The temp/ folder itself is committed (via .gitkeep).
+# Its CONTENTS are ephemeral work — they should be harvested
+# to SoT/ before an Epic closes, then cleaned up.
+#
+# To keep a temp file: prefix it with KEEP_ e.g. KEEP_notes.md
+# To ignore all temp contents except KEEP_ files:
+# ------------------------------------------------------------
+temp/*
+!temp/.gitkeep
+!temp/KEEP_*
+
+# ------------------------------------------------------------
+# Build & Distribution
+# ------------------------------------------------------------
+build/
+dist/
+
+# ------------------------------------------------------------
 # Logs
-logs
+# ------------------------------------------------------------
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# Dependencies
-node_modules/
-.pnp
-.pnp.js
+# ------------------------------------------------------------
+# Databases & Local Storage
+# ------------------------------------------------------------
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
 
-# Testing
-coverage/
-.nyc_output
-
-# Production
-build/
-dist/
-out/
-
-# Misc
+# ------------------------------------------------------------
+# Certificates & Keys
+# ------------------------------------------------------------
 *.pem
-.cache
-.temp
-.tmp
+*.key
+*.p12
+*.pfx
 
-# Private workflow data
+# ------------------------------------------------------------
+# Misc Cache & Temp
+# ------------------------------------------------------------
+.cache/
+.temp/
+.tmp/
+*.backup
+*.bak
+
+# ------------------------------------------------------------
+# Python (used in .claude/ scripts)
+# ------------------------------------------------------------
+__pycache__/
+*.pyc
+*.pyo
+.python-version
+
+# ------------------------------------------------------------
+# Private / Internal (methodology repo specific)
+# ------------------------------------------------------------
 /private/
 /internal/
 *.private.md
 /aspirational-expansion/
-
-# Backup files
-*.backup
-*.bak
-
-# Database
-*.sqlite
-*.sqlite3
-*.db
-# Visualization Suite Python cache
-__pycache__/
-*.pyc
